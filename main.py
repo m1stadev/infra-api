@@ -1,16 +1,15 @@
-from fastapi.responses import JSONResponse
-from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from typing import Optional
 from utils.client import HeaterClient
 from utils import errors, types
 
 
-app = FastAPI()
+app = FastAPI(root_path='/heater')
 api = HeaterClient()
 
 async def _set_temp_limit(temp: types.TempData) -> None: await api.set_temp_limit(temp.temp)
 
-@app.get('/heater/actions/power')
+@app.get('/actions/power')
 async def toggle_power() -> Optional[dict]:
     try:
         await api.toggle_power()
@@ -18,7 +17,7 @@ async def toggle_power() -> Optional[dict]:
     except errors.HeaterError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-@app.get('/heater/actions/heat')
+@app.get('/actions/heat')
 async def toggle_heat() -> Optional[dict]:
     try:
         await api.toggle_heat()
@@ -26,7 +25,7 @@ async def toggle_heat() -> Optional[dict]:
     except errors.HeaterError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-@app.post('/heater/set/limit')
+@app.post('/set/limit')
 async def set_temp_limit(task: BackgroundTasks, temp: types.TempData) -> Optional[dict]:
     if temp.temp == api.status['temp']:
         return {'status': 'ok'}
